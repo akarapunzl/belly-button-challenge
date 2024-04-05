@@ -1,5 +1,10 @@
 url = "https://static.bc-edx.com/data/dl-1-2/m14/lms/starter/samples.json"
 
+//check data
+d3.json(url).then(function(data) {
+    console.log(data);
+  });
+
 function init() {
     // Create dropdown
     let dropdown_menu = d3.select('#selDataset');
@@ -22,41 +27,12 @@ function init() {
 
 // update charts with each new selection
 function optionChanged(new_sample) {
-        BarChart(new_sample);
-        BubbleChart(new_sample);
+        BuildCharts(new_sample);
         MetaData(new_sample);
 }
 
-//Create bar chart
-function BarChart(sample) {
-    // Pull data
-    d3.json(url).then((data) => {
-        let all_samples = data.samples;
-
-        // Filter by sample ID 
-        let sample_filter = all_samples.filter((sample_object) => sample_object.id == sample);
-        let sample_id = sample_filter[0];
-
-        // set variables
-        let sample_values = sample_id.sample_values;
-        let otu_ids = sample_id.otu_ids;
-        let otu_labels = sample_id.otu_labels;
-        
-        // Create trace and plot for bar chart
-        let trace = [{
-            x: sample_values.slice(0, 10).reverse(),
-            y: otu_ids.slice(0, 10).reverse().map((id) => `OTU ${id}`),
-            text: otu_labels.slice(0, 10),
-            type:'bar',
-            orientation: 'h'
-        }];
-        Plotly.newPlot('bar', trace);
-        console.log(`${sample} bar chart loaded`);
-    
-    });
-}
-
-function BubbleChart(sample) {
+//Create charts
+function BuildCharts(sample) {
     // Pull data
     d3.json(url).then((data) => {
         let sample_data = data.samples;
@@ -65,12 +41,26 @@ function BubbleChart(sample) {
         let sample_filter = sample_data.filter((sample_object) => sample_object.id == sample);
         let sample_id = sample_filter[0];
 
+        // set variables
+        let sample_values = sample_id.sample_values;
         let otu_ids = sample_id.otu_ids;
         let otu_labels = sample_id.otu_labels;
-        let sample_values = sample_id.sample_values;
-
-        // Create trace and layout for bubble chart
+        
+        // Create trace for bar chart
         let trace = [{
+            x: sample_values.slice(0, 10).reverse(),
+            y: otu_ids.slice(0, 10).reverse().map((id) => `OTU ${id}`),
+            text: otu_labels.slice(0, 10),
+            type:'bar',
+            orientation: 'h'
+        }];
+
+        // plot bar chart
+        Plotly.newPlot('bar', trace);
+        console.log(`${sample} bar chart loaded`);
+
+        //Create trace for bubble chart
+        let trace2 = [{
             x: otu_ids,
             y: sample_values,
             text: otu_labels,
@@ -88,7 +78,7 @@ function BubbleChart(sample) {
         };
 
         // Plot the bubble chart
-        Plotly.newPlot('bubble', trace, layout);
+        Plotly.newPlot('bubble', trace2, layout);
         console.log(`${sample} bubble chart loaded`);
     });
 }
